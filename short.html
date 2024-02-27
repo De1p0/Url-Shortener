@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+
+<head>
+     <title>Url Shortener</title>
+     <script type="module" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+     <style>
+          body {
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               height: 100vh;
+               margin: 0;
+               font-family: 'Fira Code', monospace;
+          }
+
+          input {
+               padding: 10px;
+               border: 1px solid #ccc;
+               border-radius: 5px;
+               width: 200px;
+               margin-right: 1px;
+               font-family: 'Fira Code', monospace;
+               outline: none;
+               ;
+          }
+
+          input,
+          button {
+               transition: all 200ms ease-out;
+          }
+
+          input:hover {
+               box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+          }
+
+          input:focus {
+               box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+
+          }
+
+          #create {
+               padding: 10px 16px;
+               background-color: #007bff;
+               color: white;
+               border: none;
+               border-radius: 5px;
+               cursor: pointer;
+               margin-left: 10px;
+               font-family: 'Fira Code', monospace;
+          }
+
+          #create:hover {
+               padding: 10px 17px;
+               box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+          }
+     </style>
+     <div id="notification-box"></div>
+
+     <input id='input' placeholder='Link to shorten' spellcheck="false"> </input> <button id='create'> Create </button>
+     <div id="cursor"></div>
+
+     <script>
+          function copyText(s) {
+               navigator.clipboard.writeText(s)
+          }
+          const btn = document.querySelector('#create');
+          const input = document.querySelector('#input');
+          function setOpac(s) {
+               if (!s) {
+                    btn.style.opacity = s;
+                    input.style.opacity = s;
+               } else {
+                    setTimeout(() => {
+                         btn.style.opacity = s;
+                         input.style.opacity = s;
+                    }, 200)
+               }
+          }
+          btn.addEventListener('click', async () => {
+               if (!input.value.includes('://')) {
+                    setOpac(0)
+                    setTimeout(() => {
+                         Sweetalert2.fire({
+                              title: "Error!",
+                              text: 'Please use a valid link',
+                         }).then((x) => setOpac(1))
+                    }, 200)
+                    return
+               }
+               try {
+                    const response = await fetch(`${location.origin}/api/message`, {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ type: 'create', url: input.value }),
+                    });
+                    setOpac(0)
+                    const data = await response.json();
+                    setTimeout(() => {
+                         Sweetalert2.fire({
+                              title: "Response",
+                              text: data.status + ' Copied to clipboard',
+                         }).then((x) => setOpac(1))
+                         copyText(data.link)
+                    }, 200)
+               } catch (error) {
+                    setOpac(0)
+                    setTimeout(() => {
+                         Sweetalert2.fire({
+                              icon: "error",
+                              title: "Oops...",
+                              text: "Something went wrong!",
+                         }).then((x) => setOpac(1))
+                    }, 200)
+               }
+          });
+
+     </script>
+
+</html>
